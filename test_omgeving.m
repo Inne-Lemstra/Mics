@@ -2,8 +2,8 @@
 
 function [bron,invoer] = test_omgeving(n,bronnen)
     
-    bron = randi(31, bronnen,2)   %positie van de bronnen random initieren%
-    bron = bron-1                 %anders krijg krijg je geen waarden rond de oorsprong%
+    bron = randi([0,30], bronnen,2)   %positie van de bronnen random initieren%
+    
     
     geluids_snelheid = 343.20     %in meter per seconde%
     x = 0:(1/44100):1;            %het aantal frames (per seconde) voor het meten van de microfoons%
@@ -12,6 +12,8 @@ function [bron,invoer] = test_omgeving(n,bronnen)
         sprintf('voer frequentie van bron %d in', i)
         hz = input(':');
         bron(i,3) = hz;
+        hold on;
+        
     end
     
     for i=1:n                     %eerste loop, het aantal microfoons, bepaald het waargenomen geluid per microfoon
@@ -26,15 +28,37 @@ function [bron,invoer] = test_omgeving(n,bronnen)
             
             vertraging = afstand/geluids_snelheid               %in seconden %
             vertraging = vertraging*44100                       %in aantal gemiste metingen%
-            corrected_x = [(x(1:vertraging) - x(1:vertraging)),x(vertraging+1:end)];    %maakt het eerste gemiste gedeelte van de golf 0%
-            golfen = sin(2*pi*(x*bron(i,3))) + golfen;  %Berekent de golf van de huidige bron dmv sin(2pi*(x*hz)), en telt deze op bij de som van de eerdere golven%
+            corrected_x = [(x(1:vertraging) - x(1:vertraging)),x(vertraging:end)];    %maakt het eerste gemiste gedeelte van de golf 0%
+            golfen = sin(2*pi*(corrected_x*bron(i,3))) + golfen;  %Berekent de golf van de huidige bron dmv sin(2pi*(x*hz)), en telt deze op bij de som van de eerdere golven%
             
-            einde = j
+            bron(j,i+3) = vertraging
         end
 
         
     invoer(i,:) = golfen(:);                                  
-        
+      
     end
     
+    %%%%tekening vd opstelling%%%%
+    
+    if n > bronnen
+    punten = n
+    else
+    punten = bronnen
+    end
+    
+    hold off;
+    
+    for t=1:punten
+        if t <=bronnen
+        plot(bron(t,1),bron(t,2),'b*');
+        hold on;
+        end
+        
+        if t <= n
+        plot(mics(t,1),mics(t,2),'r^');
+        hold on;
+        end
+    end
+    hold off;
 end
